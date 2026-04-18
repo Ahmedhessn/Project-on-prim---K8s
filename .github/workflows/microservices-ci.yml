@@ -1,4 +1,11 @@
-# Build Docker images, Trivy scan, push to Docker Hub, bump Helm image tags in values.yaml
+# Microservices CI — build, scan, push Docker Hub, bump Helm tags on the SAME branch (GitOps).
+#
+# Branch → environment (aligns with Argo CD apps in K8s-Files/argocd/applications/):
+#   dev  → development  (Argo: dev namespace,   revision dev)
+#   test → staging / QA (Argo: staging ns,     revision test)
+#   main → production   (Argo: prod namespace, revision main)
+#
+# Flow: feature/* → dev → test → main (merge promotions; CI runs per-branch on relevant path changes).
 name: Microservices CI
 
 on:
@@ -21,7 +28,7 @@ on:
           - recommendationservice
           - shippingservice
   push:
-    branches: [dev, main, test]
+    branches: [dev, test, main]
     paths:
       - "Src/src/**"
       - ".github/workflows/microservices-ci.yml"
@@ -141,6 +148,16 @@ jobs:
           ref: ${{ github.ref }}
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: GitOps branch / environment
+        run: |
+          echo "Workflow branch: ${{ github.ref_name }}"
+          case "${{ github.ref_name }}" in
+            dev)  echo "Maps to: development → Argo namespace dev (revision dev)" ;;
+            test) echo "Maps to: staging/QA → Argo namespace staging (revision test)" ;;
+            main) echo "Maps to: production → Argo namespace prod (revision main)" ;;
+            *)    echo "Maps to: custom branch (verify Argo Application targetRevision)" ;;
+          esac
 
       - name: Set image tag
         id: meta
