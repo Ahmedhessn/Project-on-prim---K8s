@@ -1,0 +1,194 @@
+# Build Docker images, Trivy scan, push to Docker Hub, bump Helm image tags in values.yaml
+name: Microservices CI
+
+on:
+  workflow_dispatch:
+    inputs:
+      service:
+        description: Which service to build
+        required: true
+        type: choice
+        options:
+          - adservice
+          - cartservice
+          - checkoutservice
+          - currencyservice
+          - emailservice
+          - frontend
+          - loadgenerator
+          - paymentservice
+          - productcatalogservice
+          - recommendationservice
+          - shippingservice
+  push:
+    branches: [dev, main, test]
+    paths:
+      - "Src/src/**"
+      - ".github/workflows/microservices-ci.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: microservices-ci-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  set-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      include: ${{ steps.set.outputs.include }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - uses: dorny/paths-filter@v3
+        id: filter
+        if: github.event_name == 'push'
+        with:
+          filters: |
+            adservice: Src/src/adservice/**
+            cartservice: Src/src/cartservice/**
+            checkoutservice: Src/src/checkoutservice/**
+            currencyservice: Src/src/currencyservice/**
+            emailservice: Src/src/emailservice/**
+            frontend: Src/src/frontend/**
+            loadgenerator: Src/src/loadgenerator/**
+            paymentservice: Src/src/paymentservice/**
+            productcatalogservice: Src/src/productcatalogservice/**
+            recommendationservice: Src/src/recommendationservice/**
+            shippingservice: Src/src/shippingservice/**
+
+      - id: set
+        env:
+          EVENT: ${{ github.event_name }}
+          INPUT_SERVICE: ${{ inputs.service }}
+          F_ADSERVICE: ${{ steps.filter.outputs.adservice }}
+          F_CARTSERVICE: ${{ steps.filter.outputs.cartservice }}
+          F_CHECKOUTSERVICE: ${{ steps.filter.outputs.checkoutservice }}
+          F_CURRENCYSERVICE: ${{ steps.filter.outputs.currencyservice }}
+          F_EMAILSERVICE: ${{ steps.filter.outputs.emailservice }}
+          F_FRONTEND: ${{ steps.filter.outputs.frontend }}
+          F_LOADGENERATOR: ${{ steps.filter.outputs.loadgenerator }}
+          F_PAYMENTSERVICE: ${{ steps.filter.outputs.paymentservice }}
+          F_PRODUCTCATALOGSERVICE: ${{ steps.filter.outputs.productcatalogservice }}
+          F_RECOMMENDATIONSERVICE: ${{ steps.filter.outputs.recommendationservice }}
+          F_SHIPPINGSERVICE: ${{ steps.filter.outputs.shippingservice }}
+        run: |
+          set -e
+          json='['
+          sep=''
+          append() {
+            json="${json}${sep}{\"service\":\"$1\",\"context\":\"$2\"}"
+            sep=','
+          }
+
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            case "$INPUT_SERVICE" in
+              adservice) ctx="Src/src/adservice" ;;
+              cartservice) ctx="Src/src/cartservice/src" ;;
+              checkoutservice) ctx="Src/src/checkoutservice" ;;
+              currencyservice) ctx="Src/src/currencyservice" ;;
+              emailservice) ctx="Src/src/emailservice" ;;
+              frontend) ctx="Src/src/frontend" ;;
+              loadgenerator) ctx="Src/src/loadgenerator" ;;
+              paymentservice) ctx="Src/src/paymentservice" ;;
+              productcatalogservice) ctx="Src/src/productcatalogservice" ;;
+              recommendationservice) ctx="Src/src/recommendationservice" ;;
+              shippingservice) ctx="Src/src/shippingservice" ;;
+              *) echo "Unknown service"; exit 1 ;;
+            esac
+            append "$INPUT_SERVICE" "$ctx"
+            echo "include=${json}]" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          [ "${F_ADSERVICE:-false}" = "true" ] && append adservice Src/src/adservice
+          [ "${F_CARTSERVICE:-false}" = "true" ] && append cartservice Src/src/cartservice/src
+          [ "${F_CHECKOUTSERVICE:-false}" = "true" ] && append checkoutservice Src/src/checkoutservice
+          [ "${F_CURRENCYSERVICE:-false}" = "true" ] && append currencyservice Src/src/currencyservice
+          [ "${F_EMAILSERVICE:-false}" = "true" ] && append emailservice Src/src/emailservice
+          [ "${F_FRONTEND:-false}" = "true" ] && append frontend Src/src/frontend
+          [ "${F_LOADGENERATOR:-false}" = "true" ] && append loadgenerator Src/src/loadgenerator
+          [ "${F_PAYMENTSERVICE:-false}" = "true" ] && append paymentservice Src/src/paymentservice
+          [ "${F_PRODUCTCATALOGSERVICE:-false}" = "true" ] && append productcatalogservice Src/src/productcatalogservice
+          [ "${F_RECOMMENDATIONSERVICE:-false}" = "true" ] && append recommendationservice Src/src/recommendationservice
+          [ "${F_SHIPPINGSERVICE:-false}" = "true" ] && append shippingservice Src/src/shippingservice
+
+          if [ "$json" = '[' ]; then
+            echo "include=[]" >> "$GITHUB_OUTPUT"
+          else
+            echo "include=${json}]" >> "$GITHUB_OUTPUT"
+          fi
+
+  build-scan-push-bump:
+    needs: set-matrix
+    if: needs.set-matrix.outputs.include != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        include: ${{ fromJson(needs.set-matrix.outputs.include) }}
+
+    env:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set image tag
+        id: meta
+        run: |
+          TAG="${{ github.run_number }}-${{ matrix.service }}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "image=${DOCKERHUB_USERNAME}/${{ matrix.service }}" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image (load for scan)
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          load: true
+          tags: |
+            ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.tag }}
+            ${{ steps.meta.outputs.image }}:latest
+
+      - name: Trivy scan
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          image-ref: "${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.tag }}"
+          severity: "HIGH,CRITICAL"
+          exit-code: "1"
+
+      - name: Push tags to Docker Hub
+        run: |
+          docker push "${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.tag }}"
+          docker push "${{ steps.meta.outputs.image }}:latest"
+
+      - name: Bump Helm values tag
+        env:
+          SERVICE: ${{ matrix.service }}
+          TAG: ${{ steps.meta.outputs.tag }}
+        run: |
+          FILE="K8s-Files/helm/boutique/values.yaml"
+          test -f "$FILE"
+          sed -i -E "s|^  ${SERVICE}:.*|  ${SERVICE}: \"${TAG}\"|" "$FILE"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$FILE"
+          git diff --staged --quiet || git commit -m "ci(${SERVICE}): bump image tag to ${TAG}"
+          git push origin "HEAD:${{ github.ref_name }}"
