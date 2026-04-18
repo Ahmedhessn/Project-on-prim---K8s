@@ -8,9 +8,9 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/Ahmedhessn/K8s-CD-files.git
+    repoURL: https://github.com/Ahmedhessn/Project-on-prim---K8s.git
     targetRevision: main
-    path: helm/boutique
+    path: K8s-Files/helm/boutique
     helm:
       valueFiles:
         - values.yaml

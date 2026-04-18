@@ -11,7 +11,7 @@ pipeline {
         GIT_EMAIL      = "ahmed.hessn1212@gmail.com"
         DOCKERHUB_USERNAME = "01061875164"
         REPO_URL       = "${DOCKERHUB_USERNAME}/${IMAGE_NAME}"
-        K8S_REPO       = "https://github.com/Ahmedhessn/K8s-CD-files.git"
+        K8S_REPO       = "https://github.com/Ahmedhessn/Project-on-prim---K8s.git"
     }
 
     stages {
@@ -94,7 +94,7 @@ EOF
                           git checkout -B dev origin/main
                         fi
 
-                        VALUES_FILE=helm/boutique/values.yaml
+                        VALUES_FILE=K8s-Files/helm/boutique/values.yaml
                         test -f "$VALUES_FILE"
 
                         sed -i "/^  ${IMAGE_NAME}:/s/\\"[^\\"]*\\"/\\"${BUILD_NUMBER}\\"/" "$VALUES_FILE"
@@ -102,7 +102,7 @@ EOF
                         git add "$VALUES_FILE"
                         git commit -m "dev: bump ${IMAGE_NAME} image to ${BUILD_NUMBER}" || echo "No changes to commit"
 
-                        git remote set-url origin "https://github.com/Ahmedhessn/K8s-CD-files.git"
+                        git remote set-url origin "https://github.com/Ahmedhessn/Project-on-prim---K8s.git"
                         GIT_ASKPASS="$ASKPASS_PATH" GIT_TERMINAL_PROMPT=0 git push origin HEAD:dev
                     '''
                 }
