@@ -1,0 +1,8 @@
+clusterName: project-eks
+region: us-east-1
+vpcId: vpc-0b034065c9a200e93
+serviceAccount:
+  create: true
+  name: aws-load-balancer-controller
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::503459125797:role/AmazonEKSLoadBalancerControllerRole

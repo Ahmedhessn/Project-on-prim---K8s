@@ -1,0 +1,114 @@
+pipeline {
+    agent any 
+
+    environment {
+        // البيانات الخاصة بالخدمة
+        IMAGE_NAME    = "paymentservice"
+        DOCKER_DIR    = "src/paymentservice"
+        
+        // البيانات الثابتة للمشروع
+        GIT_USER_NAME  = "Ahmedhessn"
+        GIT_EMAIL      = "ahmed.hessn1212@gmail.com"
+        DOCKERHUB_USERNAME = "01061875164"
+        REPO_URL       = "${DOCKERHUB_USERNAME}/${IMAGE_NAME}"
+        K8S_REPO       = "https://github.com/Ahmedhessn/K8s-CD-files.git"
+    }
+
+    stages {
+        stage('Cleaning Workspace') {
+            steps { cleanWs() }
+        }
+
+        stage('Checkout from Git') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage("Docker Image Build") {
+            steps {
+                script {
+                    dir("${DOCKER_DIR}") {
+                        sh "docker build -t ${IMAGE_NAME} ."
+                    }
+                }
+            }
+        }
+
+        stage('Trivy image scan') {
+            steps {
+                script {
+                    sh """
+                        docker run --rm \\
+                          -v /var/run/docker.sock:/var/run/docker.sock \\
+                          -v \$WORKSPACE/.trivyignore:/tmp/.trivyignore:ro \\
+                          ghcr.io/aquasecurity/trivy:0.69.3 image \\
+                          --severity HIGH,CRITICAL \\
+                          --exit-code 1 \\
+                          --ignorefile /tmp/.trivyignore \\
+                          ${env.IMAGE_NAME + ':latest'}
+                    """
+                }
+            }
+        }
+
+        stage("Docker Hub push") {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DH_USER', passwordVariable: 'DH_PASS')]) {
+                    sh """
+                        echo \$DH_PASS | docker login -u \$DH_USER --password-stdin
+                        docker tag ${IMAGE_NAME}:latest ${REPO_URL}:${BUILD_NUMBER}
+                        docker push ${REPO_URL}:${BUILD_NUMBER}
+                    """
+                }
+            }
+        }
+
+        stage('Update Helm values (dev branch)') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'my-git-pattoken', 
+                                                 usernameVariable: 'GIT_USER', 
+                                                 passwordVariable: 'GIT_PASS')]) {
+                    sh '''
+                        set -e
+
+                        ASKPASS_PATH="$WORKSPACE/.git-askpass.sh"
+                        cat > "$ASKPASS_PATH" <<'EOF'
+#!/bin/sh
+case "$1" in
+  *Username*) echo "$GIT_USER" ;;
+  *Password*) echo "$GIT_PASS" ;;
+  *) echo ;;
+esac
+EOF
+                        chmod 700 "$ASKPASS_PATH"
+
+                        rm -rf k8s-cd
+                        GIT_ASKPASS="$ASKPASS_PATH" GIT_TERMINAL_PROMPT=0 git clone "$K8S_REPO" k8s-cd
+                        cd k8s-cd
+                        git config user.email "$GIT_EMAIL"
+                        git config user.name "$GIT_USER_NAME"
+
+                        git fetch origin
+                        if git rev-parse --verify refs/remotes/origin/dev >/dev/null 2>&1; then
+                          git checkout -B dev origin/dev
+                        else
+                          git checkout -B dev origin/main
+                        fi
+
+                        VALUES_FILE=helm/boutique/values.yaml
+                        test -f "$VALUES_FILE"
+
+                        sed -i "/^  ${IMAGE_NAME}:/s/\\"[^\\"]*\\"/\\"${BUILD_NUMBER}\\"/" "$VALUES_FILE"
+
+                        git add "$VALUES_FILE"
+                        git commit -m "dev: bump ${IMAGE_NAME} image to ${BUILD_NUMBER}" || echo "No changes to commit"
+
+                        git remote set-url origin "https://github.com/Ahmedhessn/K8s-CD-files.git"
+                        GIT_ASKPASS="$ASKPASS_PATH" GIT_TERMINAL_PROMPT=0 git push origin HEAD:dev
+                    '''
+                }
+            }
+        }
+    }
+}

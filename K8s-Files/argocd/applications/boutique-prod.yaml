@@ -1,0 +1,23 @@
+# Prod tracks main. Promote tested changes: merge PR test -> main, then Sync (or enable automated sync).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: boutique-prod
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Ahmedhessn/K8s-CD-files.git
+    targetRevision: main
+    path: helm/boutique
+    helm:
+      valueFiles:
+        - values.yaml
+        - values-prod.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: prod
+  syncPolicy:
+    # Prod: sync يدوي من UI/CLI أماناً أكثر — فعّل automated لو حابب نفس سلوك dev
+    syncOptions:
+      - CreateNamespace=true

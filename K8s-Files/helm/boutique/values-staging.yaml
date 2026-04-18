@@ -1,0 +1,59 @@
+ingress:
+  host: staging.el30mda.site
+
+loadgenerator:
+  enabled: true
+
+redis:
+  persistence:
+    enabled: true
+    storageClassName: gp2-csi
+    size: 1Gi
+
+hpa:
+  enabled: true
+  targets:
+    adservice:
+      minReplicas: 1
+      maxReplicas: 5
+      cpuUtilization: 60
+    cartservice:
+      minReplicas: 1
+      maxReplicas: 5
+      cpuUtilization: 60
+    checkoutservice:
+      minReplicas: 1
+      maxReplicas: 5
+      cpuUtilization: 60
+    currencyservice:
+      minReplicas: 1
+      maxReplicas: 5
+      cpuUtilization: 60
+    emailservice:
+      minReplicas: 1
+      maxReplicas: 5
+      cpuUtilization: 60
+    frontend:
+      minReplicas: 1
+      maxReplicas: 5
+      cpuUtilization: 60
+    loadgenerator:
+      minReplicas: 1
+      maxReplicas: 3
+      cpuUtilization: 60
+    paymentservice:
+      minReplicas: 1
+      maxReplicas: 5
+      cpuUtilization: 60
+    productcatalogservice:
+      minReplicas: 1
+      maxReplicas: 5
+      cpuUtilization: 60
+    recommendationservice:
+      minReplicas: 1
+      maxReplicas: 5
+      cpuUtilization: 60
+    shippingservice:
+      minReplicas: 1
+      maxReplicas: 5
+      cpuUtilization: 60

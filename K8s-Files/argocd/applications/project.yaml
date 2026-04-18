@@ -1,0 +1,26 @@
+# Same app as "boutique-dev" but keeps the name "project" used in your Argo UI.
+# Helm must load both files so ingress.host matches the environment (chart also defaults host to dev).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: project
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Ahmedhessn/K8s-CD-files.git
+    targetRevision: main
+    path: helm/boutique
+    helm:
+      valueFiles:
+        - values.yaml
+        - values-dev.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

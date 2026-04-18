@@ -1,0 +1,5 @@
+ingress:
+  host: dev.el30mda.site
+
+loadgenerator:
+  enabled: true

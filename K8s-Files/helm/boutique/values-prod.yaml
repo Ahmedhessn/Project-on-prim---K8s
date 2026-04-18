@@ -1,0 +1,55 @@
+ingress:
+  host: el30mda.site
+
+loadgenerator:
+  enabled: false
+
+redis:
+  persistence:
+    enabled: true
+    storageClassName: gp2-csi
+    size: 2Gi
+
+hpa:
+  enabled: true
+  targets:
+    adservice:
+      minReplicas: 2
+      maxReplicas: 10
+      cpuUtilization: 60
+    cartservice:
+      minReplicas: 2
+      maxReplicas: 10
+      cpuUtilization: 60
+    checkoutservice:
+      minReplicas: 2
+      maxReplicas: 10
+      cpuUtilization: 60
+    currencyservice:
+      minReplicas: 2
+      maxReplicas: 10
+      cpuUtilization: 60
+    emailservice:
+      minReplicas: 2
+      maxReplicas: 10
+      cpuUtilization: 60
+    frontend:
+      minReplicas: 2
+      maxReplicas: 10
+      cpuUtilization: 60
+    paymentservice:
+      minReplicas: 2
+      maxReplicas: 10
+      cpuUtilization: 60
+    productcatalogservice:
+      minReplicas: 2
+      maxReplicas: 10
+      cpuUtilization: 60
+    recommendationservice:
+      minReplicas: 2
+      maxReplicas: 10
+      cpuUtilization: 60
+    shippingservice:
+      minReplicas: 2
+      maxReplicas: 10
+      cpuUtilization: 60

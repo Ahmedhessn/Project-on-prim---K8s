@@ -1,0 +1,167 @@
+# Default values — override per environment with values-dev.yaml / values-staging.yaml / values-prod.yaml
+# Docker Hub user/org (same as DOCKERHUB_USERNAME in Jenkins).
+
+imageRegistry: "01061875164"
+
+# Image tags (bump via CI or manually); images are pulled from Docker Hub as {imageRegistry}/{service}:{tag}
+images:
+  adservice: "12"
+  cartservice: "2"
+  checkoutservice: "11"
+  currencyservice: "12"
+  emailservice: "11"
+  frontend: "6"
+  loadgenerator: "4"
+  paymentservice: "2"
+  productcatalogservice: "7"
+  recommendationservice: "3"
+  shippingservice: "4"
+
+redis:
+  image: redis:alpine
+  persistence:
+    enabled: false
+    # storageClassName: gp3
+    accessModes:
+      - ReadWriteOnce
+    size: 1Gi
+  resources:
+    requests:
+      cpu: 70m
+      memory: 200Mi
+    limits:
+      cpu: 125m
+      memory: 256Mi
+
+adservice:
+  resources:
+    requests:
+      cpu: 200m
+      memory: 180Mi
+    limits:
+      cpu: 300m
+      memory: 300Mi
+
+cartservice:
+  resources:
+    requests:
+      cpu: 200m
+      memory: 64Mi
+    limits:
+      cpu: 300m
+      memory: 128Mi
+
+checkoutservice:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+currencyservice:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+emailservice:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+frontend:
+  loadBalancerService: false
+  resources:
+    requests:
+      cpu: 100m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+loadgenerator:
+  enabled: true
+  replicas: 1
+  resources:
+    requests:
+      cpu: 300m
+      memory: 256Mi
+    limits:
+      cpu: 600m
+      memory: 512Mi
+
+paymentservice:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+productcatalogservice:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+recommendationservice:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 220Mi
+    limits:
+      cpu: 200m
+      memory: 450Mi
+
+shippingservice:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+hpa:
+  enabled: false
+  targets:
+    # Example:
+    # frontend:
+    #   minReplicas: 2
+    #   maxReplicas: 10
+    #   cpuUtilization: 60
+    # cartservice:
+    #   minReplicas: 2
+    #   maxReplicas: 10
+    #   cpuUtilization: 60
+
+istio:
+  rewriteAppHTTPProbers: true
+
+ingress:
+  enabled: true
+  # Set to your cluster's IngressClass for AWS Load Balancer Controller (often "alb")
+  className: alb
+  alb:
+    groupName: el30mda-shared-alb
+    scheme: internet-facing
+    targetType: ip
+    certificateArn: "arn:aws:acm:us-east-1:503459125797:certificate/f43c54f7-3bf6-4c8e-ac8a-549bfb894bad"
+    listenPorts: '[{"HTTPS":443}]'
+    sslRedirect: "443"
+    healthcheckPath: /_healthz
+  # Default host if Argo/Helm runs with only values.yaml; override in values-staging.yaml / values-prod.yaml
+  host: dev.el30mda.site

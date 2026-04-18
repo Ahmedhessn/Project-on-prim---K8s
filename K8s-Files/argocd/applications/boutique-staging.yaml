@@ -1,0 +1,25 @@
+# Staging cluster namespace. Git branch: use "test" until you create a dedicated "staging" branch.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: boutique-staging
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Ahmedhessn/K8s-CD-files.git
+    targetRevision: test
+    path: helm/boutique
+    helm:
+      valueFiles:
+        - values.yaml
+        - values-staging.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: staging
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
