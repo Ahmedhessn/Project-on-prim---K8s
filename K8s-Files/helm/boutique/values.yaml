@@ -6,7 +6,7 @@ imageRegistry: "01061875164"
 # Image tags (bump via CI or manually); images are pulled from Docker Hub as {imageRegistry}/{service}:{tag}
 images:
   adservice: "16-adservice"
-  cartservice: "2"
+  cartservice: "17-cartservice"
   checkoutservice: "11"
   currencyservice: "12"
   emailservice: "11"
