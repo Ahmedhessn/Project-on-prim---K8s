@@ -39,10 +39,9 @@ Workflow: **`.github/workflows/microservices-ci.yml`**
 
 | Trigger | Intended environment |
 |---------|----------------------|
-| Push to **`dev`** (paths: `Src/src/**` or workflow file) | Development — build/push images; bump Helm tags on **`dev`** |
-| Push to **`test`** | Staging/QA — same pipeline; bump on **`test`** for Argo staging |
-| Push to **`main`** | Production — same pipeline; bump on **`main`** for Argo prod |
-| **workflow_dispatch** | Manual build for one selected service on the branch you choose in the UI |
+| Push to **`dev`** / **`test`** / **`main`** (paths: `Src/src/**` or workflow file) | Build/push images; bump Helm tags on **the same branch** |
+| **pull_request** → `dev` / `test` / `main` | Build + Trivy only (no push, no Helm commit) — for branch protection checks |
+| **workflow_dispatch** | Manual build for one service on the branch you select in the UI |
 
 **Required secrets (repository → Settings → Secrets and variables → Actions):** `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN` (do not commit real tokens).
 
