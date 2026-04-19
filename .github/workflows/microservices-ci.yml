@@ -211,6 +211,7 @@ jobs:
 
       # Report HIGH/CRITICAL; do not fail the job until base images and pip deps are upgraded.
       # After hardening images, set exit-code to "1" and consider removing ignore-unfixed.
+      # scanners: vuln → disables secret scanning (faster; matches Trivy recommendation in logs).
       - name: Trivy scan
         uses: aquasecurity/trivy-action@v0.35.0
         with:
