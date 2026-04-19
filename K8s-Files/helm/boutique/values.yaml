@@ -21,7 +21,8 @@ redis:
   image: redis:alpine
   persistence:
     enabled: false
-    # storageClassName: gp3
+    # When enabling persistence, set storageClassName to a StorageClass on your cluster (see kubectl get storageclass). Common on VMs/k3s: local-path
+    # storageClassName: local-path
     accessModes:
       - ReadWriteOnce
     size: 1Gi
@@ -153,15 +154,15 @@ istio:
 
 ingress:
   enabled: true
-  # Set to your cluster's IngressClass for AWS Load Balancer Controller (often "alb")
-  className: alb
-  alb:
-    groupName: el30mda-shared-alb
-    scheme: internet-facing
-    targetType: ip
-    certificateArn: "arn:aws:acm:us-east-1:503459125797:certificate/f43c54f7-3bf6-4c8e-ac8a-549bfb894bad"
-    listenPorts: '[{"HTTPS":443}]'
-    sslRedirect: "443"
-    healthcheckPath: /_healthz
-  # Default host if Argo/Helm runs with only values.yaml; override in values-staging.yaml / values-prod.yaml
+  # IngressClass installed on your cluster (NGINX Ingress Controller is typical on VMs / bare metal)
+  className: nginx
+  # Optional annotations (e.g. cert-manager, proxy body size). Example TLS with cert-manager:
+  # cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  # nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  annotations: {}
+  tls:
+    enabled: false
+    # Name of a TLS Secret in the same namespace (create manually or via cert-manager)
+    secretName: ""
+  # Override host per environment in values-dev.yaml / values-staging.yaml / values-prod.yaml
   host: dev.el30mda.site

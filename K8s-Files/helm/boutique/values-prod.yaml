@@ -7,7 +7,8 @@ loadgenerator:
 redis:
   persistence:
     enabled: true
-    storageClassName: gp2-csi
+    # Must exist on the cluster (kubectl get storageclass). Override if you use Longhorn, NFS, etc.
+    storageClassName: local-path
     size: 2Gi
 
 hpa:

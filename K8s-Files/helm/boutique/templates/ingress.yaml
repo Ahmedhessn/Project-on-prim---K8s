@@ -4,16 +4,18 @@ kind: Ingress
 metadata:
   name: frontend
   namespace: {{ .Release.Namespace }}
+{{- if .Values.ingress.annotations }}
   annotations:
-    alb.ingress.kubernetes.io/scheme: {{ .Values.ingress.alb.scheme | quote }}
-    alb.ingress.kubernetes.io/target-type: {{ .Values.ingress.alb.targetType | quote }}
-    alb.ingress.kubernetes.io/group.name: {{ .Values.ingress.alb.groupName | quote }}
-    alb.ingress.kubernetes.io/listen-ports: {{ .Values.ingress.alb.listenPorts | quote }}
-    alb.ingress.kubernetes.io/certificate-arn: {{ .Values.ingress.alb.certificateArn | quote }}
-    alb.ingress.kubernetes.io/ssl-redirect: {{ .Values.ingress.alb.sslRedirect | quote }}
-    alb.ingress.kubernetes.io/healthcheck-path: {{ .Values.ingress.alb.healthcheckPath | quote }}
+{{- toYaml .Values.ingress.annotations | nindent 4 }}
+{{- end }}
 spec:
   ingressClassName: {{ .Values.ingress.className }}
+{{- if and .Values.ingress.tls.enabled .Values.ingress.tls.secretName }}
+  tls:
+    - hosts:
+        - {{ .Values.ingress.host | quote }}
+      secretName: {{ .Values.ingress.tls.secretName }}
+{{- end }}
   rules:
     - host: {{ .Values.ingress.host }}
       http:

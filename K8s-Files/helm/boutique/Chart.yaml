@@ -1,6 +1,6 @@
 apiVersion: v2
 name: boutique
-description: Microservices demo (boutique) with optional AWS ALB Ingress grouping
+description: Microservices demo (boutique) with NGINX-compatible Ingress
 type: application
 version: 0.1.0
 appVersion: "1.0"
