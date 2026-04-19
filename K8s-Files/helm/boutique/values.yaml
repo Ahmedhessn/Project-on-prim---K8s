@@ -7,7 +7,7 @@ imageRegistry: "01061875164"
 images:
   adservice: "16-adservice"
   cartservice: "17-cartservice"
-  checkoutservice: "11"
+  checkoutservice: "18-checkoutservice"
   currencyservice: "12"
   emailservice: "11"
   frontend: "6"
