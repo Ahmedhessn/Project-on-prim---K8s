@@ -14,7 +14,7 @@ images:
   loadgenerator: "28-loadgenerator"
   paymentservice: "29-paymentservice"
   productcatalogservice: "30-productcatalogservice"
-  recommendationservice: "3"
+  recommendationservice: "31-recommendationservice"
   shippingservice: "4"
 
 redis:
