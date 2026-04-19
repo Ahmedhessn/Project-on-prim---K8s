@@ -11,7 +11,7 @@ images:
   currencyservice: "12"
   emailservice: "26-emailservice"
   frontend: "27-frontend"
-  loadgenerator: "4"
+  loadgenerator: "28-loadgenerator"
   paymentservice: "29-paymentservice"
   productcatalogservice: "7"
   recommendationservice: "3"
