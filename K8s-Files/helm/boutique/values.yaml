@@ -12,7 +12,7 @@ images:
   emailservice: "26-emailservice"
   frontend: "27-frontend"
   loadgenerator: "4"
-  paymentservice: "2"
+  paymentservice: "29-paymentservice"
   productcatalogservice: "7"
   recommendationservice: "3"
   shippingservice: "4"
