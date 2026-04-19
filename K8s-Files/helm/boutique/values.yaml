@@ -8,7 +8,7 @@ images:
   adservice: "16-adservice"
   cartservice: "17-cartservice"
   checkoutservice: "18-checkoutservice"
-  currencyservice: "12"
+  currencyservice: "33-currencyservice"
   emailservice: "26-emailservice"
   frontend: "27-frontend"
   loadgenerator: "28-loadgenerator"
