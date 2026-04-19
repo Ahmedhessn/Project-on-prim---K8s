@@ -15,7 +15,7 @@ images:
   paymentservice: "29-paymentservice"
   productcatalogservice: "30-productcatalogservice"
   recommendationservice: "31-recommendationservice"
-  shippingservice: "4"
+  shippingservice: "32-shippingservice"
 
 redis:
   image: redis:alpine
