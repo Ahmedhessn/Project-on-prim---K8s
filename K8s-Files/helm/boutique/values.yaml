@@ -9,7 +9,7 @@ images:
   cartservice: "17-cartservice"
   checkoutservice: "18-checkoutservice"
   currencyservice: "12"
-  emailservice: "11"
+  emailservice: "26-emailservice"
   frontend: "6"
   loadgenerator: "4"
   paymentservice: "2"
