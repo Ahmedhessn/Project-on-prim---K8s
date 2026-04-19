@@ -13,7 +13,7 @@ images:
   frontend: "27-frontend"
   loadgenerator: "28-loadgenerator"
   paymentservice: "29-paymentservice"
-  productcatalogservice: "7"
+  productcatalogservice: "30-productcatalogservice"
   recommendationservice: "3"
   shippingservice: "4"
 
