@@ -138,6 +138,8 @@ jobs:
     needs: set-matrix
     if: needs.set-matrix.outputs.include != '[]'
     runs-on: ubuntu-latest
+    # Exposes Environment secrets DOCKERHUB_* (Settings → Environments → DOCKERHUB_USERNAME)
+    environment: DOCKERHUB_USERNAME
     strategy:
       fail-fast: false
       max-parallel: 1
