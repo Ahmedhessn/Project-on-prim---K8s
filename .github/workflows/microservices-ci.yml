@@ -41,6 +41,10 @@ on:
 permissions:
   contents: write
 
+# Use Node.js 24 for actions (Node 20 deprecated on runners; see GitHub changelog 2025-09-19).
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 concurrency:
   group: microservices-ci-${{ github.ref }}
   cancel-in-progress: false
