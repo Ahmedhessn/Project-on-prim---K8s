@@ -32,6 +32,11 @@ on:
     paths:
       - "Src/src/**"
       - ".github/workflows/microservices-ci.yml"
+  pull_request:
+    branches: [dev, test, main]
+    paths:
+      - "Src/src/**"
+      - ".github/workflows/microservices-ci.yml"
 
 permissions:
   contents: write
@@ -48,11 +53,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0
 
       - uses: dorny/paths-filter@v3
         id: filter
-        if: github.event_name == 'push'
+        if: github.event_name != 'workflow_dispatch'
         with:
           filters: |
             adservice: Src/src/adservice/**
@@ -149,6 +154,17 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Verify Docker Hub secrets (push / manual only)
+        if: github.event_name != 'pull_request'
+        env:
+          DH_USER: ${{ secrets.DOCKERHUB_USERNAME }}
+          DH_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          if [ -z "$DH_USER" ] || [ -z "$DH_TOKEN" ]; then
+            echo "::error::Set repository secrets DOCKERHUB_USERNAME and DOCKERHUB_TOKEN (Settings → Secrets and variables → Actions)."
+            exit 1
+          fi
+
       - name: GitOps branch / environment
         run: |
           echo "Workflow branch: ${{ github.ref_name }}"
@@ -162,11 +178,14 @@ jobs:
       - name: Set image tag
         id: meta
         run: |
+          # PRs from forks have no secrets; use public Docker Hub org/user for local tag + Trivy only
+          USER="${DOCKERHUB_USERNAME:-01061875164}"
           TAG="${{ github.run_number }}-${{ matrix.service }}"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
-          echo "image=${DOCKERHUB_USERNAME}/${{ matrix.service }}" >> "$GITHUB_OUTPUT"
+          echo "image=${USER}/${{ matrix.service }}" >> "$GITHUB_OUTPUT"
 
       - name: Log in to Docker Hub
+        if: github.event_name != 'pull_request'
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -192,11 +211,13 @@ jobs:
           exit-code: "1"
 
       - name: Push tags to Docker Hub
+        if: github.event_name != 'pull_request'
         run: |
           docker push "${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.tag }}"
           docker push "${{ steps.meta.outputs.image }}:latest"
 
       - name: Bump Helm values tag
+        if: github.event_name != 'pull_request'
         env:
           SERVICE: ${{ matrix.service }}
           TAG: ${{ steps.meta.outputs.tag }}
