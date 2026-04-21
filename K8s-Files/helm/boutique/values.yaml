@@ -1,7 +1,7 @@
 # Default values — override per environment with values-dev.yaml / values-staging.yaml / values-prod.yaml
 # Docker Hub user/org (same as DOCKERHUB_USERNAME in Jenkins).
 
-imageRegistry: "01061875164"
+imageRegistry: "docker.io/01061875164"
 
 # Image tags (bump via CI or manually); images are pulled from Docker Hub as {imageRegistry}/{service}:{tag}
 images:
