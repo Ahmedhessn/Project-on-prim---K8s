@@ -1,21 +1,21 @@
 # Default values — override per environment with values-dev.yaml / values-staging.yaml / values-prod.yaml
 # Docker Hub user/org (same as DOCKERHUB_USERNAME in Jenkins).
 
-imageRegistry: "01061875164"
+imageRegistry: "docker.io/01061875164"
 
 # Image tags (bump via CI or manually); images are pulled from Docker Hub as {imageRegistry}/{service}:{tag}
 images:
-  adservice: "12"
-  cartservice: "2"
-  checkoutservice: "11"
-  currencyservice: "12"
-  emailservice: "11"
-  frontend: "6"
-  loadgenerator: "4"
-  paymentservice: "2"
-  productcatalogservice: "7"
-  recommendationservice: "3"
-  shippingservice: "4"
+  adservice: "16-adservice"
+  cartservice: "17-cartservice"
+  checkoutservice: "18-checkoutservice"
+  currencyservice: "33-currencyservice"
+  emailservice: "26-emailservice"
+  frontend: "27-frontend"
+  loadgenerator: "28-loadgenerator"
+  paymentservice: "29-paymentservice"
+  productcatalogservice: "30-productcatalogservice"
+  recommendationservice: "31-recommendationservice"
+  shippingservice: "32-shippingservice"
 
 redis:
   image: redis:alpine
